@@ -6,7 +6,7 @@
    1. ```git pull```
    2. (make edits)
    3. ```git add .```
-   4. ```get commit -m'{a_useful_message}'```
+   4. ```git commit -m'{a_useful_message}'```
    5. ```git push```
 3. to add new feature by creating a new branch,
    1. go to branch A
