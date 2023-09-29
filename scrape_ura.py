@@ -144,10 +144,34 @@ def scrape_condo_info(condo_name):
     site_layout_toggle.click()
 
     # force sleep so it can apply the site plan view
-    time.sleep(10)
+    time.sleep(5)
 
     # ss of site plan
     driver.save_screenshot('screenshot_site_plan.png')
+
+    # zoom in again for better site view
+    # toggle on OneMap
+    onemap_toggle = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[1]/div/div[2]/div[2]/label/span'))
+    )
+    onemap_toggle.click()
+    marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]
+    driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+    actions = ActionChains(driver)
+    actions.move_to_element(marker_icon)
+
+    zoom_in_button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="us-map"]/div[3]/div[3]/div[2]/a[1]'))
+    )
+    for _ in range(4):
+        zoom_in_button.click()
+
+    marker_icon = WebDriverWait(driver, 20).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
+    )
+    driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+    time.sleep(5)
+    driver.save_screenshot('screenshot_site_plan_zoom.png')
 
 # iterate over the condominium names
 for condo_name in condo_names:
