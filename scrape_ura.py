@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import time
 
 # List of condominium names
@@ -53,6 +54,33 @@ def scrape_condo_info(condo_name):
         EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[2]/div[1]/div[2]'))
     )
     print(f'Gross Plot Ratio for {condo_name}: {gpr_value.text}')
+
+    #building height control restrictions
+    height_value = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[3]/div[1]/div[2]'))
+    )
+    print(f'Building height control restrictions for {condo_name}: {height_value.text}')
+
+    # Wait for the 'See more' link to be clickable and click it
+    see_more_link = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[2]/div[1]/div[4]/div[2]/div[2]/a'))
+    )
+    see_more_link.click()
+
+    # Wait for the setback requirements text to load and print it
+    setback_requirements_road = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[1]/div[1]'))
+    )
+    setback_requirements_category = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[1]/div[2]/div'))
+    )
+    setback_requirements_description = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[2]/div[1]'))
+    )
+    setback_requirements_meters = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[2]/div[2]'))
+    )
+    print(f'Setback Requirements for {condo_name}: {setback_requirements_road.text}, {setback_requirements_category.text},{setback_requirements_description.text}, {setback_requirements_meters.text}')
 
 # Iterate over the condominium names and scrape the info for each
 for condo_name in condo_names:
