@@ -63,9 +63,15 @@ def scrape_condo_info(condo_name):
 
     #maximum dwelling units
     max_dwelling_units = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '// *[ @ id = "us-c-ip"] / div[3] / div / div[2] / div / div[2] / div[1] / div[5] / div[2] / div[1] / div[6] / div[5] / div / div'))
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[6]/div[5]/div/div'))
     )
     print(f'Maximum dwelling units for {condo_name}: {max_dwelling_units.text}')
+
+    #landscape replacement area
+    lra = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[7]/div[5]/div/div'))
+    )
+    print(f'Landscape replacement area(LRA) for {condo_name}: {lra.text}')
 
     # Wait for the 'See more' link to be clickable and click it
     see_more_link = WebDriverWait(driver, 10).until(
