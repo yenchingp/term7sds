@@ -3,11 +3,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
 
 # List of condominium names
-condo_names = ['SIMEI GREEN']
+condo_names = ['DAHLIA DRIVE']
 
 # Initialize Selenium WebDriver (Chrome)
 driver = webdriver.Chrome()
@@ -37,9 +37,9 @@ def scrape_condo_info(condo_name):
     )
     see_other_services_button.click()
 
-    # Wait for the 'Explore Development Site' to be clickable and click it
+    # click explore development site
     explore_dev_site_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.CSS_SELECTOR, "#us-svcs-l1card-template0"))
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="us-svcs-l1card-template0"]/div'))
     )
     explore_dev_site_button.click()
 
@@ -61,26 +61,45 @@ def scrape_condo_info(condo_name):
     )
     print(f'Building height control restrictions for {condo_name}: {height_value.text}')
 
+    #maximum dwelling units
+    max_dwelling_units = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '// *[ @ id = "us-c-ip"] / div[3] / div / div[2] / div / div[2] / div[1] / div[5] / div[2] / div[1] / div[6] / div[5] / div / div'))
+    )
+    print(f'Maximum dwelling units for {condo_name}: {max_dwelling_units.text}')
+
     # Wait for the 'See more' link to be clickable and click it
     see_more_link = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[2]/div[1]/div[4]/div[2]/div[2]/a'))
     )
     see_more_link.click()
 
-    # Wait for the setback requirements text to load and print it
-    setback_requirements_road = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[1]/div[1]'))
+    # Wait for the setback requirements section to load
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]'))
     )
-    setback_requirements_category = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[1]/div[2]/div'))
-    )
-    setback_requirements_description = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[2]/div[1]'))
-    )
-    setback_requirements_meters = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[2]/div[2]'))
-    )
-    print(f'Setback Requirements for {condo_name}: {setback_requirements_road.text}, {setback_requirements_category.text},{setback_requirements_description.text}, {setback_requirements_meters.text}')
+
+    index = 1
+    while True:
+        try:
+            road_name_xpath = f'//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[{index}]/div[1]'
+            # // *[ @ id = "us-svcs-site-dev-pp-sb-rrl-card"] / div / div[1] / div[1] / div[1]
+            # // *[ @ id = "us-svcs-site-dev-pp-sb-rrl-card"] / div / div[1] / div[3] / div[1]
+            road_category_xpath = f'//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[{index}]/div[2]/div'
+            # // *[ @ id = "us-svcs-site-dev-pp-sb-rrl-card"] / div / div[1] / div[1] / div[2] / div
+            # // *[ @ id = "us-svcs-site-dev-pp-sb-rrl-card"] / div / div[1] / div[3] / div[2] / div
+            residential_road_buffer_xpath = f'//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]/div[{index+1}]/div[2]'
+            # // *[ @ id = "us-svcs-site-dev-pp-sb-rrl-card"] / div / div[1] / div[2] / div[2]
+            # // *[ @ id = "us-svcs-site-dev-pp-sb-rrl-card"] / div / div[1] / div[4] / div[2]
+
+            road_name = driver.find_element(By.XPATH, road_name_xpath).text
+            road_category = driver.find_element(By.XPATH, road_category_xpath).text
+            residential_road_buffer = driver.find_element(By.XPATH, residential_road_buffer_xpath).text
+
+            print(f'Road: {road_name}, Category: {road_category}, Residential Road Buffer: {residential_road_buffer}')
+            index += 2
+        except NoSuchElementException:
+            # Exit the loop if the element isn't found, which likely means we've processed all cards
+            break
 
 # Iterate over the condominium names and scrape the info for each
 for condo_name in condo_names:
