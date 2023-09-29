@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import time
+from selenium.webdriver.common.action_chains import ActionChains
 
 # List of condominium names
 condo_names = ['DAHLIA DRIVE']
@@ -106,6 +107,50 @@ def scrape_condo_info(condo_name):
         except NoSuchElementException:
             # Exit the loop if the element isn't found, which likely means we've processed all cards
             break
+
+    #section to take ss:
+    # click layers tab
+    layers = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '// *[ @ id = "us-map-layers"]'))
+    )
+    layers.click()
+
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".leaflet-marker-icon"))
+    )
+    marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]  # Assume the first marker is the one of interest
+
+    # Ensure marker is in view
+    driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+
+    # Zoom in using ActionChains
+    actions = ActionChains(driver)
+    actions.move_to_element(marker_icon)
+    for _ in range(20):
+        actions.send_keys(Keys.ADD)
+    actions.perform()
+
+    # Re-find the marker to avoid StaleElementReferenceException
+    marker_icon = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
+    )
+
+    # Ensure marker is in view again
+    driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+
+    # Take a screenshot
+    driver.save_screenshot('screenshot_area.png')
+
+    # toggle on the site plan view
+    site_layout_toggle = WebDriverWait(driver, 20).until(
+        EC.element_to_be_clickable((By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
+    )
+    site_layout_toggle.click()
+
+    time.sleep(10)
+
+    # Take a screenshot
+    driver.save_screenshot('screenshot_site_plan.png')
 
 # Iterate over the condominium names and scrape the info for each
 for condo_name in condo_names:
