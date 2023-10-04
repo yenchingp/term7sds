@@ -15,6 +15,19 @@ to_remove = []
 no_result = False
 special_control = False
 
+# clear the contents of the folders Area, Site plan and Zoom
+folders = ['Screenshots/Area', 'Screenshots/Site plan', 'Screenshots/Zoom']
+for foldername in folders:
+    for filename in os.listdir(foldername):
+        if filename == None:
+            break
+        file_path = os.path.join(foldername, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+        except Exception as e:
+            print(f"Failed to delete {file_path}. Reason: {e}")
+
 csv_file_path = 'condo_data_new_v2.csv'
 
 # Open the CSV file and read its contents
@@ -29,7 +42,7 @@ with open(csv_file_path, mode='r') as csv_file:
 # delete the first element in condo_names
 condo_names.pop(0)
 # row filter
-condo_names = condo_names[:3]
+condo_names = condo_names[:5]
 
 # Initialize Selenium WebDriver (Chrome)
 driver = webdriver.Chrome()
@@ -228,7 +241,7 @@ def scrape_condo_info(condo_name):
                 return
             
             else:
-                print('test')
+                print('Searching for GPR')
                 # GPR
                 gpr_value = WebDriverWait(driver, 5).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[2]/div[1]/div[2]'))
@@ -258,7 +271,7 @@ def scrape_condo_info(condo_name):
                     EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[2]/div[1]/div[4]/div[2]/div[2]/a'))
                 )
                 see_more_link.click()
-                print('See more clicked')
+                # print('See more clicked')
 
                 # setback requirements
                 WebDriverWait(driver, 5).until(
@@ -309,14 +322,14 @@ def scrape_condo_info(condo_name):
                     (By.XPATH, '//*[@id="us-svcs-site-rdev-pp-sb-crrl"]/div[2]/label/span'))
             )
             site_layout_toggle.click()
-            print('Site layout toggle 1 clicked')
+            # print('Site layout toggle 1 clicked')
 
             # click layers tab
             layers = WebDriverWait(driver, 5).until(
                 EC.element_to_be_clickable((By.XPATH, '// *[ @ id = "us-map-layers"]'))
             )
             layers.click()
-            print("Layers clicked")
+            # print("Layers clicked")
 
             # wait and locate location pin
             WebDriverWait(driver, 5).until(
@@ -331,7 +344,7 @@ def scrape_condo_info(condo_name):
             )
             for _ in range(10):
                 zoom_in_button.click()
-                print('Zoom 1 clicked')
+                # print('Zoom 1 clicked')
             # relocate location pin avoid StaleElementReferenceException
             marker_icon = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
@@ -367,7 +380,7 @@ def scrape_condo_info(condo_name):
                     (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
             )
             site_layout_toggle.click()
-            print('Site layout toggle 2 clicked')
+            # print('Site layout toggle 2 clicked')
 
             # toggle on OneMap
             onemap_toggle = WebDriverWait(driver, 5).until(
@@ -375,7 +388,7 @@ def scrape_condo_info(condo_name):
                     (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[1]/div/div[2]/div[2]/label/span'))
             )
             onemap_toggle.click()
-            print('Onemap toggle clicked')
+            # print('Onemap toggle clicked')
 
             # force sleep so it can apply the site plan view
             time.sleep(5)
@@ -394,7 +407,7 @@ def scrape_condo_info(condo_name):
             )
             for _ in range(4):
                 zoom_in_button.click()
-                print('Zoom 2 clicked')
+                # print('Zoom 2 clicked')
 
             marker_icon = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
@@ -418,6 +431,7 @@ def scrape_condo_info(condo_name):
             print(f"An unexpected error occurred: {e}")
             driver.quit()
             exit()
+        print('Scraping complete!')
     
 # Iterate over the condominium names and scrape the info for each
 for condo_name in condo_names:
