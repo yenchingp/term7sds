@@ -42,7 +42,7 @@ with open(csv_file_path, mode='r') as csv_file:
 # delete the first element in condo_names
 condo_names.pop(0)
 # row filter
-condo_names = condo_names[:5]
+condo_names = condo_names[:10]
 
 # Initialize Selenium WebDriver (Chrome)
 driver = webdriver.Chrome()
@@ -154,52 +154,101 @@ def scrape_condo_info(condo_name):
                     explore_dev_site_button.click()
                     print('Explore development site clicked')
 
-                    # click 'Development Information'
-                    development_info_button = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
-                    )
-                    development_info_button.click()
-                    print('Development information 2 clicked')
-
-                    # gross floor area
-                    gross_floor_area = WebDriverWait(driver, 3).until(
-                        EC.presence_of_element_located((By.XPATH,
-                                                        '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
-                    )
-                    print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
-
                 except Exception as e:
-                    # press view site info tab
-                    try:
-                        redevelop_tab = WebDriverWait(driver, 3).until(
-                            EC.element_to_be_clickable(
-                                (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[1]/div[1]'))
-                        )
-                        redevelop_tab.click()
-                        print('Redevelop site 1 clicked')
-                    except Exception as e:
-
                         try:
-                            # click 'View Site Info" tab
-                            view_site_info = WebDriverWait(driver, 3).until(
-                                EC.element_to_be_clickable(
-                                    (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[1]/div[2]'))
+                            # wait and click 'See Other Services'
+                            see_other_services_button = WebDriverWait(driver, 3).until(
+                                EC.element_to_be_clickable((By.CSS_SELECTOR, ".us-ip-svcs-l2-other-services"))
                             )
-                            view_site_info.click()
-                            print('View site info clicked')
+                            see_other_services_button.click()
 
-                            # gross floor area
-                            gross_floor_area = WebDriverWait(driver, 3).until(
-                                EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
+                            # Click 'Explore Development Site'
+                            explore_dev_site_button = WebDriverWait(driver, 3).until(
+                                EC.element_to_be_clickable((By.CSS_SELECTOR, "#us-svcs-l1card-template0"))
                             )
-                            print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
-
+                            explore_dev_site_button.click()
+                            print('Explore development site clicked')
                         except NoSuchElementException:
                             print("Element not found!")
                         except TimeoutException:
                             print("Operation timed out!")
                         except Exception as e:
                             print(f"An unexpected error occurred: {e}")
+
+                try:
+                    view_site_info_tab = WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, '.us-svcs-site-l1-option'))
+                    )
+                    view_site_info_tab.click()
+
+                    # click 'Development Information'
+                    development_info_button = WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable(
+                            (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
+                    )
+                    development_info_button.click()
+                    print('Development information 1 clicked')
+                except Exception as e:
+                    try:
+                        # click 'Development Information'
+                        development_info_button = WebDriverWait(driver, 3).until(
+                            EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
+                        )
+                        development_info_button.click()
+                        print('Development information 2 clicked')
+                    except NoSuchElementException:
+                        print("Element not found!")
+                    except TimeoutException:
+                        print("Operation timed out!")
+                    except Exception as e:
+                        print(f"An unexpected error occurred: {e}")
+
+                try:
+                    # gross floor area
+                    gross_floor_area = WebDriverWait(driver, 3).until(
+                        EC.presence_of_element_located((By.XPATH,
+                                                        '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
+                    )
+                    print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
+                except NoSuchElementException:
+                    print("Element not found!/dh")
+                except TimeoutException:
+                    print("Operation timed out!/dh")
+                except Exception as e:
+                    print(f"An unexpected error occurred: {e}/dh")
+
+            # except Exception as e:
+            #     # press view site info tab
+                try:
+                    redevelop_tab = WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable(
+                            (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[1]/div[1]'))
+                    )
+                    redevelop_tab.click()
+                    print('Redevelop site 1 clicked')
+                except Exception as e:
+
+                    try:
+                        # click 'View Site Info" tab
+                        view_site_info = WebDriverWait(driver, 3).until(
+                            EC.element_to_be_clickable(
+                                (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[1]/div[2]'))
+                        )
+                        view_site_info.click()
+                        print('View site info clicked')
+
+                        # gross floor area
+                        gross_floor_area = WebDriverWait(driver, 3).until(
+                            EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
+                        )
+                        print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
+
+                    except NoSuchElementException:
+                        print("Element not found!")
+                    except TimeoutException:
+                        print("Operation timed out!")
+                    except Exception as e:
+                        print(f"An unexpected error occurred: {e}")
 
         try:
             # site area
@@ -243,38 +292,38 @@ def scrape_condo_info(condo_name):
             else:
                 print('Searching for GPR')
                 # GPR
-                gpr_value = WebDriverWait(driver, 5).until(
+                gpr_value = WebDriverWait(driver, 3).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[2]/div[1]/div[2]'))
                 )
                 print(f'Gross Plot Ratio for {condo_name}: {gpr_value.text}')
 
                 # building height control restrictions
-                height_value = WebDriverWait(driver, 5).until(
+                height_value = WebDriverWait(driver, 3).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[3]/div[1]/div[2]'))
                 )
                 print(f'Building height control restrictions for {condo_name}: {height_value.text}')
 
                 # maximum dwelling units
-                max_dwelling_units = WebDriverWait(driver, 5).until(
+                max_dwelling_units = WebDriverWait(driver, 3).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[6]/div[5]/div/div'))
                 )
                 print(f'Maximum dwelling units for {condo_name}: {max_dwelling_units.text}')
 
                 # landscape replacement area
-                lra = WebDriverWait(driver, 5).until(
+                lra = WebDriverWait(driver, 3).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div[1]/div[7]/div[5]/div/div'))
                 )
                 print(f'Landscape replacement area (LRA) for {condo_name}: {lra.text}')
 
                 # wait and click on 'See more'
-                see_more_link = WebDriverWait(driver, 5).until(
+                see_more_link = WebDriverWait(driver, 3).until(
                     EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[2]/div[1]/div[4]/div[2]/div[2]/a'))
                 )
                 see_more_link.click()
                 # print('See more clicked')
 
                 # setback requirements
-                WebDriverWait(driver, 5).until(
+                WebDriverWait(driver, 3).until(
                     EC.presence_of_element_located((By.XPATH, '//*[@id="us-svcs-site-dev-pp-sb-rrl-card"]/div/div[1]'))
                 )
 
@@ -317,7 +366,7 @@ def scrape_condo_info(condo_name):
         # section to take ss
         try:
             # toggle on setback marking
-            site_layout_toggle = WebDriverWait(driver, 5).until(
+            site_layout_toggle = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable(
                     (By.XPATH, '//*[@id="us-svcs-site-rdev-pp-sb-crrl"]/div[2]/label/span'))
             )
@@ -325,28 +374,28 @@ def scrape_condo_info(condo_name):
             # print('Site layout toggle 1 clicked')
 
             # click layers tab
-            layers = WebDriverWait(driver, 5).until(
+            layers = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable((By.XPATH, '// *[ @ id = "us-map-layers"]'))
             )
             layers.click()
             # print("Layers clicked")
 
             # wait and locate location pin
-            WebDriverWait(driver, 5).until(
+            WebDriverWait(driver, 3).until(
                 EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".leaflet-marker-icon"))
             )
             marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]
             # ensure location pin is in view
             driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
             # zoom in to maximum zoon
-            zoom_in_button = WebDriverWait(driver, 5).until(
+            zoom_in_button = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="us-map"]/div[3]/div[3]/div[2]/a[1]'))
             )
             for _ in range(10):
                 zoom_in_button.click()
                 # print('Zoom 1 clicked')
             # relocate location pin avoid StaleElementReferenceException
-            marker_icon = WebDriverWait(driver, 5).until(
+            marker_icon = WebDriverWait(driver, 3).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
             )
             # ensure location pin is in view again
@@ -356,26 +405,26 @@ def scrape_condo_info(condo_name):
             driver.execute_script("arguments[0].style.display = 'none';", marker_icon)
             if 'd-none' in toggle_element.get_attribute('class'):
                 # toggle on the site plan view
-                site_layout_toggle = WebDriverWait(driver, 5).until(
+                site_layout_toggle = WebDriverWait(driver, 3).until(
                     EC.element_to_be_clickable(
                         (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
                 )
                 site_layout_toggle.click()
-                time.sleep(5)
+                time.sleep(3)
                 # save the screenshot with file name condo_name
                 driver.save_screenshot(f'screenshot_{condo_name}_area.png')
                 #  move the screenshot to the folder 'Screenshots'
                 os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
                 print('Screenshot area saved 1')
             else:
-                time.sleep(5)
+                time.sleep(3)
                 # save the screenshot with file name condo_name
                 driver.save_screenshot(f'screenshot_{condo_name}_area.png')
                 os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
                 print('Screenshot area saved 2')
 
             # toggle off the site plan view
-            site_layout_toggle = WebDriverWait(driver, 5).until(
+            site_layout_toggle = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable(
                     (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
             )
@@ -383,7 +432,7 @@ def scrape_condo_info(condo_name):
             # print('Site layout toggle 2 clicked')
 
             # toggle on OneMap
-            onemap_toggle = WebDriverWait(driver, 5).until(
+            onemap_toggle = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable(
                     (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[1]/div/div[2]/div[2]/label/span'))
             )
@@ -391,7 +440,7 @@ def scrape_condo_info(condo_name):
             # print('Onemap toggle clicked')
 
             # force sleep so it can apply the site plan view
-            time.sleep(5)
+            time.sleep(3)
 
             # ss of site plan
             # save the screenshot with file name condo_name
@@ -431,12 +480,15 @@ def scrape_condo_info(condo_name):
             print(f"An unexpected error occurred: {e}")
             driver.quit()
             exit()
-        print('Scraping complete!')
+
+        # print condo_name scraped
+        print(f'{condo_name} scraped!')
     
 # Iterate over the condominium names and scrape the info for each
 for condo_name in condo_names:
     scrape_condo_info(condo_name)
 
+print('Scraping complete!')
 print(to_remove)
 
 # Close the WebDriver
