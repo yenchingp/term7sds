@@ -18,5 +18,5 @@
    2. ```git pull```, fix conflicts then commit and push
    3. ```git checkout {A}```
    4. ```git pull```, fix conflicts then commit and push
-   5. ```git merge --noff --no-commit {B}```
+   5. ```git merge --no-ff --no-commit {B}```
    6. ```git push```
