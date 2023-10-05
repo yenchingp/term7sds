@@ -47,8 +47,8 @@ with open(csv_file_path, mode='r') as csv_file:
 condo_names.pop(0)
 index_names.pop(0)
 # row filter
-condo_names = condo_names[:2]
-index_names = index_names[:2]
+condo_names = condo_names[:100]
+index_names = index_names[:100]
 
 # Initialize Selenium WebDriver (Chrome)
 driver = webdriver.Chrome()
@@ -325,117 +325,117 @@ def scrape_condo_info(index, condo_name):
             
 
 
-        # # section to take ss
-        # try:
-        #     # toggle on setback marking
-        #     site_layout_toggle = WebDriverWait(driver, 3).until(
-        #         EC.element_to_be_clickable(
-        #             (By.XPATH, '//*[@id="us-svcs-site-rdev-pp-sb-crrl"]/div[2]/label/span'))
-        #     )
-        #     site_layout_toggle.click()
-        #     # print('Site layout toggle 1 clicked')
+        # section to take ss
+        try:
+            # toggle on setback marking
+            site_layout_toggle = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@id="us-svcs-site-rdev-pp-sb-crrl"]/div[2]/label/span'))
+            )
+            site_layout_toggle.click()
+            # print('Site layout toggle 1 clicked')
 
-        #     # click layers tab
-        #     layers = WebDriverWait(driver, 3).until(
-        #         EC.element_to_be_clickable((By.XPATH, '// *[ @ id = "us-map-layers"]'))
-        #     )
-        #     layers.click()
-        #     # print("Layers clicked")
+            # click layers tab
+            layers = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.XPATH, '// *[ @ id = "us-map-layers"]'))
+            )
+            layers.click()
+            # print("Layers clicked")
 
-        #     # wait and locate location pin
-        #     WebDriverWait(driver, 3).until(
-        #         EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".leaflet-marker-icon"))
-        #     )
-        #     marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]
-        #     # ensure location pin is in view
-        #     driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
-        #     # zoom in to maximum zoon
-        #     zoom_in_button = WebDriverWait(driver, 3).until(
-        #         EC.element_to_be_clickable((By.XPATH, '//*[@id="us-map"]/div[3]/div[3]/div[2]/a[1]'))
-        #     )
-        #     for _ in range(10):
-        #         zoom_in_button.click()
-        #         # print('Zoom 1 clicked')
-        #     # relocate location pin avoid StaleElementReferenceException
-        #     marker_icon = WebDriverWait(driver, 3).until(
-        #         EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
-        #     )
-        #     # ensure location pin is in view again
-        #     driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+            # wait and locate location pin
+            WebDriverWait(driver, 3).until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".leaflet-marker-icon"))
+            )
+            marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]
+            # ensure location pin is in view
+            driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+            # zoom in to maximum zoon
+            zoom_in_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="us-map"]/div[3]/div[3]/div[2]/a[1]'))
+            )
+            for _ in range(10):
+                zoom_in_button.click()
+                # print('Zoom 1 clicked')
+            # relocate location pin avoid StaleElementReferenceException
+            marker_icon = WebDriverWait(driver, 3).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
+            )
+            # ensure location pin is in view again
+            driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
 
-        #     toggle_element = driver.find_element(By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[3]')
-        #     driver.execute_script("arguments[0].style.display = 'none';", marker_icon)
-        #     if 'd-none' in toggle_element.get_attribute('class'):
-        #         # toggle on the site plan view
-        #         site_layout_toggle = WebDriverWait(driver, 3).until(
-        #             EC.element_to_be_clickable(
-        #                 (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
-        #         )
-        #         site_layout_toggle.click()
-        #         time.sleep(3)
-        #         # save the screenshot with file name condo_name
-        #         driver.save_screenshot(f'screenshot_{condo_name}_area.png')
-        #         #  move the screenshot to the folder 'Screenshots'
-        #         os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
-        #         print('Screenshot area saved 1')
-        #     else:
-        #         time.sleep(3)
-        #         # save the screenshot with file name condo_name
-        #         driver.save_screenshot(f'screenshot_{condo_name}_area.png')
-        #         os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
-        #         print('Screenshot area saved 2')
+            toggle_element = driver.find_element(By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[3]')
+            driver.execute_script("arguments[0].style.display = 'none';", marker_icon)
+            if 'd-none' in toggle_element.get_attribute('class'):
+                # toggle on the site plan view
+                site_layout_toggle = WebDriverWait(driver, 3).until(
+                    EC.element_to_be_clickable(
+                        (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
+                )
+                site_layout_toggle.click()
+                time.sleep(3)
+                # save the screenshot with file name condo_name
+                driver.save_screenshot(f'screenshot_{condo_name}_area.png')
+                #  move the screenshot to the folder 'Screenshots'
+                os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
+                print('Screenshot area saved 1')
+            else:
+                time.sleep(3)
+                # save the screenshot with file name condo_name
+                driver.save_screenshot(f'screenshot_{condo_name}_area.png')
+                os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
+                print('Screenshot area saved 2')
 
-        #     # toggle off the site plan view
-        #     site_layout_toggle = WebDriverWait(driver, 3).until(
-        #         EC.element_to_be_clickable(
-        #             (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
-        #     )
-        #     site_layout_toggle.click()
-        #     # print('Site layout toggle 2 clicked')
+            # toggle off the site plan view
+            site_layout_toggle = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[2]/div/div[2]/div[2]/label/span'))
+            )
+            site_layout_toggle.click()
+            # print('Site layout toggle 2 clicked')
 
-        #     # toggle on OneMap
-        #     onemap_toggle = WebDriverWait(driver, 3).until(
-        #         EC.element_to_be_clickable(
-        #             (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[1]/div/div[2]/div[2]/label/span'))
-        #     )
-        #     onemap_toggle.click()
-        #     # print('Onemap toggle clicked')
+            # toggle on OneMap
+            onemap_toggle = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@id="us-ol-lyr-content"]/div[2]/div[1]/div/div[2]/div[2]/label/span'))
+            )
+            onemap_toggle.click()
+            # print('Onemap toggle clicked')
 
-        #     # force sleep so it can apply the site plan view
-        #     time.sleep(3)
+            # force sleep so it can apply the site plan view
+            time.sleep(3)
 
-        #     # ss of site plan
-        #     # save the screenshot with file name condo_name
-        #     driver.save_screenshot(f'screenshot_{condo_name}_site_plan.png')
-        #     os.rename(f'screenshot_{condo_name}_site_plan.png', f'Screenshots/Site plan/screenshot_{condo_name}_area.png')
-        #     print('Screenshot site plan saved')
+            # ss of site plan
+            # save the screenshot with file name condo_name
+            driver.save_screenshot(f'screenshot_{condo_name}_site_plan.png')
+            os.rename(f'screenshot_{condo_name}_site_plan.png', f'Screenshots/Site plan/screenshot_{condo_name}_area.png')
+            print('Screenshot site plan saved')
 
-        #     # zoom in again for better site view
-        #     marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]
-        #     driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
-        #     zoom_in_button = WebDriverWait(driver, 5).until(
-        #         EC.element_to_be_clickable((By.XPATH, '//*[@id="us-map"]/div[3]/div[3]/div[2]/a[1]'))
-        #     )
-        #     for _ in range(4):
-        #         zoom_in_button.click()
-        #         # print('Zoom 2 clicked')
+            # zoom in again for better site view
+            marker_icon = driver.find_elements(By.CSS_SELECTOR, ".leaflet-marker-icon")[0]
+            driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+            zoom_in_button = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="us-map"]/div[3]/div[3]/div[2]/a[1]'))
+            )
+            for _ in range(4):
+                zoom_in_button.click()
+                # print('Zoom 2 clicked')
 
-        #     marker_icon = WebDriverWait(driver, 5).until(
-        #         EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
-        #     )
-        #     driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
-        #     time.sleep(5)
-        #     # save the screenshot with file name condo_name
-        #     driver.save_screenshot(f'screenshot_{condo_name}_site_plan_zoom.png')
-        #     os.rename(f'screenshot_{condo_name}_site_plan_zoom.png', f'Screenshots/Zoom/screenshot_{condo_name}_area.png')
-        #     print('Screenshot site plan zoom saved')
+            marker_icon = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, ".leaflet-marker-icon.leaflet-zoom-animated"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
+            time.sleep(5)
+            # save the screenshot with file name condo_name
+            driver.save_screenshot(f'screenshot_{condo_name}_site_plan_zoom.png')
+            os.rename(f'screenshot_{condo_name}_site_plan_zoom.png', f'Screenshots/Zoom/screenshot_{condo_name}_area.png')
+            print('Screenshot site plan zoom saved')
 
-        # except NoSuchElementException:
-        #     print("Element not found!")
-        # except TimeoutException:
-        #     print("Operation timed out!")
-        # except Exception as e:
-        #     print(f"An unexpected error occurred: {e}")
+        except NoSuchElementException:
+            print("Element not found!")
+        except TimeoutException:
+            print("Operation timed out!")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
 
         # print condo_name scraped
         print(f'{condo_name} scraped!')
