@@ -42,7 +42,7 @@ with open(csv_file_path, mode='r') as csv_file:
 # delete the first element in condo_names
 condo_names.pop(0)
 # row filter
-condo_names = condo_names[:10]
+condo_names = condo_names[:15]
 
 # Initialize Selenium WebDriver (Chrome)
 driver = webdriver.Chrome()
@@ -123,12 +123,52 @@ def scrape_condo_info(condo_name):
             print(f"An unexpected error occurred: {e}")
 
         try:
-            # gross floor area
-            gross_floor_area = WebDriverWait(driver, 3).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
+            # wait and click 'See Other Services'
+            see_other_services_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".us-ip-svcs-l2-other-services"))
             )
-            print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
+            see_other_services_button.click()
 
+            # Click 'Explore Development Site'
+            explore_dev_site_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "#us-svcs-l1card-template0"))
+            )
+            explore_dev_site_button.click()
+            print('Explore development site clicked')
+        except Exception as e:
+            try:
+                # wait and click 'See Other Services'
+                see_other_services_button = WebDriverWait(driver, 3).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, ".us-ip-svcs-l2-other-services"))
+                )
+                see_other_services_button.click()
+
+                # Click 'Explore Development Site'
+                explore_dev_site_button = WebDriverWait(driver, 3).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "#us-svcs-l1card-template0"))
+                )
+                explore_dev_site_button.click()
+                print('Explore development site clicked')
+            except NoSuchElementException:
+                print("Element not found!")
+            except TimeoutException:
+                print("Operation timed out!")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+
+        try:
+            view_site_info_tab = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, '.us-svcs-site-l1-option'))
+            )
+            view_site_info_tab.click()
+
+            # click 'Development Information'
+            development_info_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
+            )
+            development_info_button.click()
+            print('Development information 1 clicked')
         except Exception as e:
             try:
                 # click 'Development Information'
@@ -136,119 +176,27 @@ def scrape_condo_info(condo_name):
                     EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
                 )
                 development_info_button.click()
-                print('Development information 1 clicked')
-
+                print('Development information 2 clicked')
+            except NoSuchElementException:
+                print("Element not found!")
+            except TimeoutException:
+                print("Operation timed out!")
             except Exception as e:
-                try:
-                    # Wait and click 'See Other Services'
-                    see_other_services_button = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, ".us-ip-svcs-l2-other-services"))
-                    )
-                    see_other_services_button.click()
-                    print('See other services clicked')
+                print(f"An unexpected error occurred: {e}")
 
-                    # Click 'Explore Development Site'
-                    explore_dev_site_button = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, "#us-svcs-l1card-template0"))
-                    )
-                    explore_dev_site_button.click()
-                    print('Explore development site clicked')
-
-                except Exception as e:
-                        try:
-                            # wait and click 'See Other Services'
-                            see_other_services_button = WebDriverWait(driver, 3).until(
-                                EC.element_to_be_clickable((By.CSS_SELECTOR, ".us-ip-svcs-l2-other-services"))
-                            )
-                            see_other_services_button.click()
-
-                            # Click 'Explore Development Site'
-                            explore_dev_site_button = WebDriverWait(driver, 3).until(
-                                EC.element_to_be_clickable((By.CSS_SELECTOR, "#us-svcs-l1card-template0"))
-                            )
-                            explore_dev_site_button.click()
-                            print('Explore development site clicked')
-                        except NoSuchElementException:
-                            print("Element not found!")
-                        except TimeoutException:
-                            print("Operation timed out!")
-                        except Exception as e:
-                            print(f"An unexpected error occurred: {e}")
-
-                try:
-                    view_site_info_tab = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, '.us-svcs-site-l1-option'))
-                    )
-                    view_site_info_tab.click()
-
-                    # click 'Development Information'
-                    development_info_button = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable(
-                            (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
-                    )
-                    development_info_button.click()
-                    print('Development information 1 clicked')
-                except Exception as e:
-                    try:
-                        # click 'Development Information'
-                        development_info_button = WebDriverWait(driver, 3).until(
-                            EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div[1]/div[2]/div[1]/div[5]/div[1]/div[2]'))
-                        )
-                        development_info_button.click()
-                        print('Development information 2 clicked')
-                    except NoSuchElementException:
-                        print("Element not found!")
-                    except TimeoutException:
-                        print("Operation timed out!")
-                    except Exception as e:
-                        print(f"An unexpected error occurred: {e}")
-
-                try:
-                    # gross floor area
-                    gross_floor_area = WebDriverWait(driver, 3).until(
-                        EC.presence_of_element_located((By.XPATH,
-                                                        '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
-                    )
-                    print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
-                except NoSuchElementException:
-                    print("Element not found!/dh")
-                except TimeoutException:
-                    print("Operation timed out!/dh")
-                except Exception as e:
-                    print(f"An unexpected error occurred: {e}/dh")
-
-            # except Exception as e:
-            #     # press view site info tab
-                try:
-                    redevelop_tab = WebDriverWait(driver, 3).until(
-                        EC.element_to_be_clickable(
-                            (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[1]/div[1]'))
-                    )
-                    redevelop_tab.click()
-                    print('Redevelop site 1 clicked')
-                except Exception as e:
-
-                    try:
-                        # click 'View Site Info" tab
-                        view_site_info = WebDriverWait(driver, 3).until(
-                            EC.element_to_be_clickable(
-                                (By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[1]/div[2]'))
-                        )
-                        view_site_info.click()
-                        print('View site info clicked')
-
-                        # gross floor area
-                        gross_floor_area = WebDriverWait(driver, 3).until(
-                            EC.presence_of_element_located((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
-                        )
-                        print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
-
-                    except NoSuchElementException:
-                        print("Element not found!")
-                    except TimeoutException:
-                        print("Operation timed out!")
-                    except Exception as e:
-                        print(f"An unexpected error occurred: {e}")
+        try:
+            # gross floor area
+            gross_floor_area = WebDriverWait(driver, 3).until(
+                EC.presence_of_element_located((By.XPATH,
+                                                '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[5]/div[2]/div/div[1]/div[2]'))
+            )
+            print(f'Gross floor area for {condo_name}: {gross_floor_area.text}')
+        except NoSuchElementException:
+            print("Element not found!/dh")
+        except TimeoutException:
+            print("Operation timed out!/dh")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}/dh")
 
         try:
             # site area
@@ -281,7 +229,7 @@ def scrape_condo_info(condo_name):
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="us-c-ip"]/div[3]/div/div[2]/div/div[2]/div[1]/div[1]'))
             )
             redevelop_tab.click()
-            print('Redevelop site 2 clicked')
+            print('Redevelop site clicked')
 
             special_control = False
             special_control_check(condo_name)
@@ -359,8 +307,7 @@ def scrape_condo_info(condo_name):
             exit()
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
-            driver.quit()
-            exit()
+            
 
 
         # section to take ss
