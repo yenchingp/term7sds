@@ -47,8 +47,13 @@ with open(csv_file_path, mode='r') as csv_file:
 condo_names.pop(0)
 index_names.pop(0)
 # row filter
-condo_names = condo_names[:100]
-index_names = index_names[:100]
+condo_names = condo_names[:5]
+index_names = index_names[:5]
+
+# # for scraping at specific indexes
+# indices = [11, 21]  #for index 12 and 22
+# condo_names = [condo_names[i] for i in indices]
+# index_names = [index_names[i] for i in indices]
 
 # Initialize Selenium WebDriver (Chrome)
 driver = webdriver.Chrome()
@@ -374,15 +379,15 @@ def scrape_condo_info(index, condo_name):
                 site_layout_toggle.click()
                 time.sleep(3)
                 # save the screenshot with file name condo_name
-                driver.save_screenshot(f'screenshot_{condo_name}_area.png')
+                driver.save_screenshot(f'{index}_area.png')
                 #  move the screenshot to the folder 'Screenshots'
-                os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
+                os.rename(f'{index}_area.png', f'Screenshots/Area/{index}_area.png')
                 print('Screenshot area saved 1')
             else:
                 time.sleep(3)
                 # save the screenshot with file name condo_name
-                driver.save_screenshot(f'screenshot_{condo_name}_area.png')
-                os.rename(f'screenshot_{condo_name}_area.png', f'Screenshots/Area/screenshot_{condo_name}_area.png')
+                driver.save_screenshot(f'{index}_area.png')
+                os.rename(f'{index}_area.png', f'Screenshots/Area/{index}_area.png')
                 print('Screenshot area saved 2')
 
             # toggle off the site plan view
@@ -406,8 +411,8 @@ def scrape_condo_info(index, condo_name):
 
             # ss of site plan
             # save the screenshot with file name condo_name
-            driver.save_screenshot(f'screenshot_{condo_name}_site_plan.png')
-            os.rename(f'screenshot_{condo_name}_site_plan.png', f'Screenshots/Site plan/screenshot_{condo_name}_area.png')
+            driver.save_screenshot(f'{index}_site_plan.png')
+            os.rename(f'{index}_site_plan.png', f'Screenshots/Site plan/{index}_area.png')
             print('Screenshot site plan saved')
 
             # zoom in again for better site view
@@ -426,8 +431,8 @@ def scrape_condo_info(index, condo_name):
             driver.execute_script("arguments[0].scrollIntoView();", marker_icon)
             time.sleep(5)
             # save the screenshot with file name condo_name
-            driver.save_screenshot(f'screenshot_{condo_name}_site_plan_zoom.png')
-            os.rename(f'screenshot_{condo_name}_site_plan_zoom.png', f'Screenshots/Zoom/screenshot_{condo_name}_area.png')
+            driver.save_screenshot(f'{index}_site_plan_zoom.png')
+            os.rename(f'{index}_site_plan_zoom.png', f'Screenshots/Zoom/{index}_area.png')
             print('Screenshot site plan zoom saved')
 
         except NoSuchElementException:
@@ -450,7 +455,7 @@ for index, condo_name in zip(index_names, condo_names):
 print(scraped_data)
 
 # After scraping, write the data to a CSV file
-with open('scraped_condo_data.csv', 'w', newline='') as csv_file:
+with open('scraped_condo_data.csv', 'w', newline='', encoding='utf-8') as csv_file:
     fieldnames = list(scraped_data[0].keys())
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
     writer.writeheader()
