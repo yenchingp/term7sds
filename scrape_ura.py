@@ -412,7 +412,7 @@ def scrape_condo_info(index_name, condo_name):
             # ss of site plan
             # save the screenshot with file name condo_name
             driver.save_screenshot(f'{index_name}_site_plan.png')
-            os.rename(f'{index_name}_site_plan.png', f'Screenshots/Site plan/{index_name}_area.png')
+            os.rename(f'{index_name}_site_plan.png', f'Screenshots/Site plan/{index_name}_site_plan.png')
             print('Screenshot site plan saved')
 
             # zoom in again for better site view
@@ -432,7 +432,7 @@ def scrape_condo_info(index_name, condo_name):
             time.sleep(5)
             # save the screenshot with file name condo_name
             driver.save_screenshot(f'{index_name}_site_plan_zoom.png')
-            os.rename(f'{index_name}_site_plan_zoom.png', f'Screenshots/Zoom/{index_name}_area.png')
+            os.rename(f'{index_name}_site_plan_zoom.png', f'Screenshots/Zoom/{index_name}_zoom.png')
             print('Screenshot site plan zoom saved')
 
         except NoSuchElementException:
