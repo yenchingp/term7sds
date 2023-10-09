@@ -47,8 +47,8 @@ with open(csv_file_path, mode='r') as csv_file:
 condo_names.pop(0)
 index_names.pop(0)
 # row filter
-condo_names = condo_names[:1000]
-index_names = index_names[:1000]
+condo_names = condo_names[1900:]
+index_names = index_names[1900:]
 
 # # for scraping at specific indexes
 # indices = [11, 21]  #for index 12 and 22
