@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Define the input folder path containing the images
-input_folder = "Compiled_OSM_screenshots - Copy\Input" 
+input_folder = "input" 
 
 # Define the output folders for the three categories
 output_folder_small = "blue_small"  # Folder for images with a small amount of blue pixels
@@ -16,8 +16,8 @@ os.makedirs(output_folder_medium, exist_ok=True)
 os.makedirs(output_folder_large, exist_ok=True)
 
 # Thresholds for categorizing images
-blue_pixel_threshold_small = 0.04  # Images with less than 5% blue pixels
-blue_pixel_threshold_medium = 0.1  # Images with 5-10% blue pixels
+blue_pixel_threshold_small = 0.01  # Images with less than 2% blue pixels
+blue_pixel_threshold_medium = 0.08  # Images with 2-10% blue pixels
 
 # Process each image in the input folder
 for filename in os.listdir(input_folder):
@@ -32,10 +32,18 @@ for filename in os.listdir(input_folder):
                 # Convert the image to the HSV color space
                 hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-                # Define the lower and upper bounds for blue in HSV
-                lower_blue = np.array([100, 50, 50])
-                upper_blue = np.array([130, 255, 255])
+                # # Define the lower and upper bounds for blue in HSV
+                # lower_blue = np.array([100, 50, 50])
+                # upper_blue = np.array([130, 255, 255])
 
+                # Define the lower and upper bounds for yellow in HSV
+                # lower_blue = np.array([20, 100, 100])
+                # upper_blue = np.array([30, 255, 255])
+
+                # # Define the lower and upper bounds for green in HSV
+                lower_blue = np.array([50, 100, 100])
+                upper_blue = np.array([70, 255, 255])
+                
                 # Create a binary mask for blue color in the HSV image
                 blue_mask = cv2.inRange(hsv_image, lower_blue, upper_blue)
 
