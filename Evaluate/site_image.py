@@ -74,10 +74,14 @@ print(geojson)
 
 geojson_feature = {
     "type": "Feature",
-    "properties": {},
+    "properties": {
+        "fill": "#00FF00",
+        "fill-opacity": "1.0"
+    },
     "geometry": {
         "type": "Polygon",
-        "coordinates": [geojson]
+        "coordinates": [geojson],
+
     }
 }
 geojson_str = json.dumps(geojson_feature)
@@ -93,23 +97,22 @@ style_id = 'clogxdq2i007r01qr5gmsc907'
 
 # Construct the API request URL
 maskurl = f"https://api.mapbox.com/styles/v1/zyjy118/{style_id}/static/geojson({encoded_geojson})/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
-#maskurl = f"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/geojson({encoded_geojson})/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
 url = f"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
 # Send the GET request
-#response1 = requests.get(url)
+response1 = requests.get(url)
 response2 = requests.get(maskurl)
 
-# if response1.status_code == 200:
-#     # Save the image to a file
-#     with open('site.png', 'wb') as image_file:
-#         image_file.write(response1.content)
-#     print('Image saved successfully!')
-# else:
-#     print(f"Failed to retrieve the image: {response1.status_code} - {response1.content}")
+if response1.status_code == 200:
+    # Save the image to a file
+    with open('site.png', 'wb') as image_file:
+        image_file.write(response1.content)
+    print('Image saved successfully!')
+else:
+    print(f"Failed to retrieve the image: {response1.status_code} - {response1.content}")
 
 if response2.status_code == 200:
     # Save the image to a file
-    with open('site_masked.png', 'wb') as image_file:
+    with open('site_maskedd.png', 'wb') as image_file:
         image_file.write(response2.content)
     print('Masked Image saved successfully!')
 else:
