@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <title>Site Planner</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 200px;
+            background-color: #FFFFFF;
+            text-align: center;  /* Center content */
+        }
+
+        h1 {
+            color: #2B45A1;
+            padding-top: 30px;
+            padding-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input[type="submit"], button {
+            padding: 12px 20px;
+            background-color: #2B45A1;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 20px;
+            margin-bottom: 50px;
+        }
+
+        .information, .development-restrictions, .possible-site-plans {
+            background-color: #fff;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: inline-block;
+            width: 100%;
+            text-align: left;  /* Reset text alignment for section content */
+        }
+
+        img {
+            max-width: 100%;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #2B45A1;
+        }
+
+        .parent {
+            width: 100%;
+            height: 50px;
+            /* Aligns the children items in a row direction */
+            display: flex;
+            margin-bottom: 50px;
+
+        }
+
+        .child1{
+            width: 50%;
+            height: 100px;
+        }
+
+        .child2{
+            width: 50%;
+            height: 100px;
+        }
+
+        #loadingScreen {
+            display: none; /* Initially hidden */
+            /* Add your desired styling here (e.g., position, size, background) */
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            z-index: 1000; /* Ensure it's above other elements */
+            text-align: center; /* Center the loading text or image */
+            padding-top: 20%; /* Adjust as needed */
+        }
+
+        .hidden {
+            display: none;
+
+            .image-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr); /* 3 columns */
+                gap: 10px; /* Spacing between images */
+            }
+
+            .image-grid img {
+                width: 100%; /* Make images fill their container */
+                height: auto; /* Keep aspect ratio */
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Site Planner</h1>
+    <form onsubmit="submitForm(); return false;">
+        <div class="parent">
+            <div class="child1">
+                <label for="postal_code">Postal code/Address:</label>
+                <input type="text" id="postal_code" name="postal_code" required>
+            </div>
+            <div>or</div>
+            <div class="child2">
+                <label for="boundary_coordinates">Boundary coordinates:</label>
+                <input type="text" id="boundary_coordinates" name="boundary_coordinates">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="target_gpr">Target GPR:</label>
+            <input type="text" id="target_gpr" name="target_gpr" required>
+        </div>
+        <input type="submit" value="Go!">
+    </form>
+
+    <div id="loadingScreen" class="hidden">Loading...</div>
+
+    <div class="information hidden">
+        <h2>Information</h2>
+        <p>Address: {{development_restrictions.address| default('')}}</p>
+        <p>Target GPR: {{development_restrictions.gpr| default('')}}</p>
+        <p>Area: {{development_restrictions.site_area| default('')}}</p>
+    </div>
+    <div class="development-restrictions hidden">
+        <h2>Development restrictions:</h2>
+        <p>{{ development_restrictions.max_gfa | default('')}}</p>
+        <p>{{ development_restrictions.roads_setback | default('')}}</p>
+        <p>{{ development_restrictions.max_dwelling_units | default('')}}</p>
+    </div>
+    <div class="possible-site-plans hidden">
+        <h2>Possible site plans:</h2>
+        <div id="sitePlanImages"  class="image-grid"></div>
+    </div>
+    <button onclick="window.print()">Convert to PDF</button>
+
+</body>
+</html>
