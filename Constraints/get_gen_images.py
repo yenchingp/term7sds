@@ -4,6 +4,7 @@ import cv2
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
 
 def rd_geojson_maker(geojson, gpr):
     rgb = ""
@@ -21,7 +22,8 @@ def rd_geojson_maker(geojson, gpr):
         "type": "Feature",
         "properties": {
             "fill": rgb,
-            "fill-opacity": "1.0"
+            "fill-opacity": "1.0",
+            "stroke-width" : 0,
         },
         "geometry": {
             "type": "Polygon",
@@ -37,7 +39,24 @@ def buildings_geojson_maker(geojson):
         "type": "Feature",
         "properties": {
             "fill": "#00FF00",
-            "fill-opacity": "1.0"
+            "fill-opacity": "1.0",
+            "stroke-width" : 0,
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [geojson]
+        }
+    }
+    geojson_str = json.dumps(geojson_feature)
+    encoded_geojson = requests.utils.quote(geojson_str)
+    return encoded_geojson
+
+def og_geojson_maker(geojson):
+    geojson_feature = {
+        "type": "Feature",
+        "properties": {
+            "fill": "#E6E4E0",
+            "fill-opacity": "1.0", 
         },
         "geometry": {
             "type": "Polygon",
@@ -51,6 +70,7 @@ def buildings_geojson_maker(geojson):
 def get_mapbox_image(geojson,center_coordinates, gpr):
     encoded_geojson_rd = rd_geojson_maker(geojson, gpr)
     encoded_geojson_buildings = buildings_geojson_maker(geojson) # mask is always green
+    encoded_geojson_og = og_geojson_maker(geojson)
     # call mapbox api
     access_token = 'sk.eyJ1IjoieWVuY2hpbmdwIiwiYSI6ImNsb3FrZ2U1czBqZjkycWx3cXVlbDRzOXkifQ.hTjiIfuNE7I-KhYqJfQkFw'  # Replace with your Mapbox access token
     lon, lat = center_coordinates  # Replace with the center longitude and latitude of your GeoJSON
@@ -59,7 +79,7 @@ def get_mapbox_image(geojson,center_coordinates, gpr):
     style_id = 'clogyeist005901nzfv9veyfa'
     mask_rd_url = f"https://api.mapbox.com/styles/v1/zyjy118/{style_id}/static/geojson({encoded_geojson_rd})/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
     mask_buildings_url =  f"https://api.mapbox.com/styles/v1/zyjy118/{style_id}/static/geojson({encoded_geojson_buildings})/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
-    ogurl = f"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
+    ogurl = f"https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/geojson({encoded_geojson_og})/{lon},{lat},{zoom}/{width}x{height}@2x?access_token={access_token}"
     response1 = requests.get(ogurl)
     response2 = requests.get(mask_rd_url)
     response3 = requests.get(mask_buildings_url)
@@ -140,14 +160,82 @@ def get_gen_image(rd_input_image, buildings_input_image):
     plt.imsave("gen_b3.png", gen_b3.numpy())
     return
 
+def rgb_colour(gpr):
+    building_rgb = []
+    rd_rgb = []
+    if gpr >= 1.4 and gpr < 1.6:
+        building_rgb = [255, 10, 169]
+        rd_rgb = [0,255,0]
+    elif gpr >= 1.6 and gpr < 2.1:
+        building_rgb = [200,130,60]
+        rd_rgb = [200,130,60]
+    elif gpr >= 2.1 and gpr < 2.8:
+        building_rgb = [0,0,255]
+        rd_rgb = [0,0,0]
+    elif gpr >= 2.8 and gpr < 3.0:
+        building_rgb = [255,0,0]
+        rd_rgb = [255,0,0]
+    elif gpr >= 3.0:
+        building_rgb = [0,0,0]
+        rd_rgb = [0,0,255]
+    return rd_rgb, building_rgb
+
+def apply_to_og_site():
+    return
+
+def create_binary_mask(arr, target_color, threshold=30):
+    lower_bound = np.array(target_color) - threshold
+    upper_bound = np.array(target_color) + threshold
+    mask = (arr[:, :, :3] >= lower_bound) & (arr[:, :, :3] <= upper_bound)
+    return np.all(mask, axis=-1)
+
+def extract_building_regions(arr, target_color, threshold=10):
+    lower_bound = np.array(target_color) - threshold
+    upper_bound = np.array(target_color) + threshold
+    mask = (arr[:, :, :3] >= lower_bound) & (arr[:, :, :3] <= upper_bound)
+    return np.all(mask, axis=-1)
+
+def extract_raw_buildings(gpr):
+    rd_rgb ,  building_rgb = rgb_colour(gpr)
+    og_path = "site.png"
+    mask_path = "site_masked_buildings.png"
+    gen_rd1_path = 'gen_rd1.png'
+
+    og_image = Image.open(og_path).convert('RGB')
+    masked_image = Image.open(mask_path).convert('RGB')
+    gen_rd1 = Image.open(gen_rd1_path).convert('RGB')
+
+    og_image = og_image.resize((512, 512))
+    masked_image = masked_image.resize((512, 512))
+
+    og_array = np.array(og_image)
+    masked_image_array = np.array(masked_image)
+    gen_rd1_array = np.array(gen_rd1)
+    
+    site_mask = create_binary_mask(masked_image_array, rd_rgb)
+    Image.fromarray((site_mask * 255).astype(np.uint8)).save("debug_site_mask.png")
+    gen_rd1_array[~site_mask] = [255,255,255]
+    rd1_building_mask = extract_building_regions(gen_rd1_array, [255,10,169])
+    Image.fromarray((rd1_building_mask * 255).astype(np.uint8)).save("debug_building_mask.png")
+
+    colored_paper = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8)
+    colored_paper[rd1_building_mask] = [220,217,214]
+    Image.fromarray(colored_paper).save("debug_colored_paper.png")
+    og_array[site_mask] = colored_paper[site_mask]
+
+    raw_gen_r1 = Image.fromarray(og_array)
+    raw_gen_r1.save("raw_r1.png")
+    return
+
 
 def main(geojson, center_coordinates, gpr):
     get_mapbox_image(geojson, center_coordinates, gpr)
     prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
     get_gen_image("rd_input.png", "buildings_input.png")
+    extract_raw_buildings(gpr)
     return
 
 center_coordinates = (103.78378301045407, 1.30560345)
 geojson = [[103.784756, 1.3050353], [103.7847946, 1.3061424], [103.7850962, 1.3068138], [103.7840787, 1.3068373], [103.7840465, 1.3064766], [103.7830011, 1.3065207], [103.7826663, 1.3050645], [103.784756, 1.3050353]]
-tar_gpr = 2.1
+tar_gpr = 1.4
 main(geojson, center_coordinates, tar_gpr)
