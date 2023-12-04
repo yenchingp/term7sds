@@ -43,8 +43,19 @@ def get_coordinates_of_way(osm_id):
     except requests.RequestException as e:
         print(f"Error fetching data for way {osm_id} from Overpass API: {e}")
         return []
+    
+def coordinates_to_geojson(coordinates, osm_type='way'):
+    if not coordinates or coordinates[0] != coordinates[-1]:
+        print("The provided coordinates do not form a closed loop. Cannot create a Polygon.")
+        return None
+    # Flip the coordinates from (lat, lon) to (lon, lat)
+    flipped_coordinates = [[lon, lat] for lat, lon in coordinates]
+    return flipped_coordinates
 
 def main(address):
     osm_id, center_coordinates = get_osm_id(address)
+    if osm_id is None:
+        return
     location = get_coordinates_of_way(osm_id)
-    return osm_id, center_coordinates, location
+    geojson = coordinates_to_geojson(location)
+    return osm_id, center_coordinates, location, geojson
