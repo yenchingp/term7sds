@@ -3,6 +3,7 @@ import requests
 import cv2
 import tensorflow as tf
 import numpy as np
+import matplotlib.pyplot as plt
 
 def rd_geojson_maker(geojson, gpr):
     rgb = ""
@@ -104,32 +105,41 @@ def prep_buildings_model_input(gpr, input_image, output_image): #BGR
     return
 
 def get_gen_image(rd_input_image, buildings_input_image):
-    rd_image = cv2.imread(rd_input_image) 
-    rd_image = cv2.resize(rd_image, (512,512))
-    if len(rd_image.shape) == 2 or rd_image.shape[2] == 1:
-        rd_image = cv2.cvtColor(rd_image, cv2.COLOR_GRAY2RGB)
-    rd_image = np.expand_dims(rd_image, axis=0)
-    rd1_model = tf.keras.models.load_model('..\\Model\\rd\\generatorv5_final_rd_1.h5', compile=False) #continue
-    gen_rd1 = rd1_model.predict(rd_image)
-    gen_rd1 = (gen_rd1[0] * 255).astype(np.uint8)
+    rd_image = tf.io.read_file(rd_input_image)
+    rd_image = tf.io.decode_png(rd_image)
+    rd_image = tf.cast(rd_image, tf.float32)
+    rd_image = tf.image.resize(rd_image, [512, 512], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+    rd_image = tf.expand_dims(rd_image, axis=0)
+    rd_image = (rd_image / 127.5) - 1
+    rd1_model = tf.keras.models.load_model('..\\Model\\rd\\generatorv5_final_rd_1.h5')
+    gen_rd1 = rd1_model(rd_image, training=True)
+    gen_rd1 = gen_rd1[0]
+    gen_rd1 = (gen_rd1 + 1) / 2
+    gen_rd1 = tf.clip_by_value(gen_rd1, 0, 1)
 
-    buildings_image = cv2.imread(buildings_input_image) 
-    buildings_image = cv2.resize(buildings_image, (512,512))
-    if len(buildings_image.shape) == 2 or buildings_image.shape[2] == 1:
-        buildings_image = cv2.cvtColor(buildings_image, cv2.COLOR_GRAY2RGB)
-    buildings_image = np.expand_dims(buildings_image, axis=0)
-    b2_model = tf.keras.models.load_model('..\\Model\\buildings\\generatorv5_final_buildings_2.h5', compile=False)
-    gen_b2 = b2_model.predict(buildings_image)
-    gen_b2 = (gen_b2[0] * 255).astype(np.uint8)
-    b3_model = tf.keras.models.load_model('..\\Model\\buildings\\generatorv5_final_buildings_3.h5', compile=False)
-    gen_b3 = b3_model.predict(buildings_image)
-    gen_b3 = (gen_b3[0] * 255).astype(np.uint8)
+    buildings_image = tf.io.read_file(buildings_input_image)
+    buildings_image = tf.io.decode_png(buildings_image)
+    buildings_image = tf.cast(buildings_image, tf.float32)
+    buildings_image = tf.image.resize(buildings_image, [512, 512], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+    buildings_image = tf.expand_dims(buildings_image, axis=0)
+    buildings_image = (buildings_image / 127.5) - 1
+    b2_model = tf.keras.models.load_model('..\\Model\\buildings\\generatorv5_final_buildings_2.h5')
+    gen_b2 = b2_model(buildings_image, training=True)
+    gen_b2 = gen_b2[0]
+    gen_b2 = (gen_b2 + 1) / 2
+    gen_b2 = tf.clip_by_value(gen_b2, 0, 1)
 
-    cv2.imwrite("gen_rd1.png", gen_rd1)
-    cv2.imwrite("gen_b2.png", gen_b2)
-    cv2.imwrite("gen_b3.png", gen_b3)
-    print("Saved generated images from model!")
+    b3_model = tf.keras.models.load_model('..\\Model\\buildings\\generatorv5_final_buildings_3.h5')
+    gen_b3 = b3_model(buildings_image, training=True)
+    gen_b3 = gen_b3[0]
+    gen_b3 = (gen_b3 + 1) / 2
+    gen_b3 = tf.clip_by_value(gen_b3, 0, 1)
+ 
+    plt.imsave("gen_rd1.png", gen_rd1.numpy())
+    plt.imsave("gen_b2.png", gen_b2.numpy())
+    plt.imsave("gen_b3.png", gen_b3.numpy())
     return
+
 
 def main(geojson, center_coordinates, gpr):
     get_mapbox_image(geojson, center_coordinates, gpr)
