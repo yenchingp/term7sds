@@ -310,6 +310,7 @@ def extract_raw_buildings(mask_rgb, building_rgb, mask_path, gen_model_path, mod
 
 
 def main(geojson, center_coordinates, gpr):
+    print(gpr)
     get_mapbox_image(geojson, center_coordinates, gpr)
     prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
     get_gen_image("rd_input.png", "buildings_input.png")
@@ -319,5 +320,10 @@ def main(geojson, center_coordinates, gpr):
     mask_pixels = extract_raw_buildings([0,255,0], buildings_building_rgb, "buildings_input.png", "gen_b2.png", "b2")
     extract_raw_buildings([0,255,0], buildings_building_rgb, "buildings_input.png", "gen_b3.png", "b3")
     site_area = mask_pixels*1.3335
-    print(site_area)
     return site_area
+
+# center_coordinates = (103.78378301045407, 1.30560345)
+# geojson = [[103.784756, 1.3050353], [103.7847946, 1.3061424], [103.7850962, 1.3068138], [103.7840787, 1.3068373], [103.7840465, 1.3064766], [103.7830011, 1.3065207], [103.7826663, 1.3050645], [103.784756, 1.3050353]]
+# tar_gpr = 3.0
+# mask_pixels = main(geojson, center_coordinates, tar_gpr)
+# print(mask_pixels)
