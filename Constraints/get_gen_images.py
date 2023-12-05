@@ -34,23 +34,6 @@ def rd_geojson_maker(geojson, gpr):
     encoded_geojson = requests.utils.quote(geojson_str)
     return encoded_geojson
 
-# def buildings_geojson_maker(geojson):
-#     geojson_feature = {
-#         "type": "Feature",
-#         "properties": {
-#             "fill": "#00FF00",
-#             "fill-opacity": "1.0",
-#             "stroke-width" : 0,
-#         },
-#         "geometry": {
-#             "type": "Polygon",
-#             "coordinates": [geojson]
-#         }
-#     }
-#     geojson_str = json.dumps(geojson_feature)
-#     encoded_geojson = requests.utils.quote(geojson_str)
-#     return encoded_geojson
-
 def og_geojson_maker(geojson):
     geojson_feature = {
         "type": "Feature",
@@ -189,7 +172,7 @@ def create_binary_mask(arr, target_color, threshold=30):
     mask = (arr[:, :, :3] >= lower_bound) & (arr[:, :, :3] <= upper_bound)
     return np.all(mask, axis=-1)
 
-def extract_building_regions(arr, target_color, threshold=10):
+def extract_building_regions(arr, target_color, threshold=30):
     lower_bound = np.array(target_color) - threshold
     upper_bound = np.array(target_color) + threshold
     mask = (arr[:, :, :3] >= lower_bound) & (arr[:, :, :3] <= upper_bound)
@@ -253,47 +236,44 @@ def smooth_contours(contours, alpha=0.02):
     smoothed_contours = [cv2.approxPolyDP(cnt, alpha * cv2.arcLength(cnt, True), True) for cnt in contours]
     return smoothed_contours
 
-
-def extract_raw_buildings(gpr, rgb):
+def extract_raw_buildings(mask_rgb, building_rgb, mask_path, gen_model_path, model_name):
     og_path = "site.png"
-    mask_path = "rd_input.png"
-    gen_rd1_path = 'gen_rd1.png'
+    mask_path = mask_path
+    gen_model_path = gen_model_path
+    model = model_name
 
     og_image = Image.open(og_path).convert('RGB')
     masked_image = Image.open(mask_path).convert('RGB')
-    gen_rd1 = Image.open(gen_rd1_path).convert('RGB')
+    gen_image = Image.open(gen_model_path).convert('RGB')
 
     og_image = og_image.resize((512, 512))
     masked_image = masked_image.resize((512, 512))
 
     og_array = np.array(og_image)
     masked_image_array = np.array(masked_image)
-    gen_rd1_array = np.array(gen_rd1)
+    gen_image_array = np.array(gen_image)
     
     #extract buildings
-    site_mask = create_binary_mask(masked_image_array, rgb)
-    gen_rd1_array[~site_mask] = [255,255,255]
-    rd1_building_mask = extract_building_regions(gen_rd1_array, [255,10,169]) # for rd its always pink buildings
-    Image.fromarray((rd1_building_mask * 255).astype(np.uint8)).save("debug_rd1_building_mask.png")
+    site_mask = create_binary_mask(masked_image_array, mask_rgb)
+    mask_pixels = np.sum(site_mask)
+    gen_image_array[~site_mask] = [255,255,255]
+    gen_building_mask = extract_building_regions(gen_image_array, building_rgb) # for rd its always pink buildings
     # put raw buildings onto og site
     colored_paper = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8) #light brown site
-    colored_paper[rd1_building_mask] = [220,217,214] #dark brown buildings
+    colored_paper[gen_building_mask] = [220,217,214] #dark brown buildings
     og_array[site_mask] = colored_paper[site_mask]
-    raw_gen_r1 = Image.fromarray(og_array)
-    raw_gen_r1.save("raw_r1.png")
+    raw_gen = Image.fromarray(og_array)
+    raw_gen.save(f"static\\raw_{model}.png")
 
     # get contours
-    building_mask = rd1_building_mask.copy()
+    building_mask = gen_building_mask.copy()
     building_mask = (building_mask * 255).astype(np.uint8)
-    Image.fromarray((building_mask).astype(np.uint8)).save("debug_building_mask.png")
     blurred = cv2.GaussianBlur(building_mask, (5, 5), 0)
     edges = cv2.Canny(blurred, 50, 150)
     contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     approximated_contours = approx_contours(contours)
-    original_approximated_contours = cv2.drawContours(building_mask.copy(), approximated_contours, -1, (255), 10)
     blank_image_for_contour = np.zeros_like(building_mask)
     approximated_contours_image = cv2.drawContours(blank_image_for_contour, approximated_contours, -1, (255), 5)
-    Image.fromarray((approximated_contours_image).astype(np.uint8)).save("debug_site_mask.png")
 
     #get rectangles
     colored_paper2 = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8) #light brown site
@@ -308,8 +288,8 @@ def extract_raw_buildings(gpr, rgb):
         if w >= min_width and h >= min_height:
             cv2.rectangle(colored_paper2, (x, y), (x + w, y + h), rectangle_color, -1)
     og_array[site_mask] = colored_paper2[site_mask]
-    rec_gen_r1 = Image.fromarray(og_array)
-    rec_gen_r1.save("rec_r1.png")
+    rec_gen = Image.fromarray(og_array)
+    rec_gen.save(f"static\\rec_{model}.png")
 
     # smooth
     colored_paper3 = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8)
@@ -319,27 +299,25 @@ def extract_raw_buildings(gpr, rgb):
     closed_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel, iterations=1)
     contours, _ = cv2.findContours(closed_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contour_pixels = sum(cv2.contourArea(contour) for contour in contours)
-    min_area_threshold = 0.1*contour_pixels
+    min_area_threshold = 0.15*contour_pixels
     large_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area_threshold] #discard small contours
     smoothed_contours = smooth_contours(large_contours)
     cv2.drawContours(colored_paper3, smoothed_contours, -1, contour_colour, thickness=cv2.FILLED)
     og_array[site_mask] = colored_paper3[site_mask]
-    smooth_gen_r1 = Image.fromarray(og_array)
-    smooth_gen_r1.save("smooth_r1.png")
-
-
-    return
+    smooth_gen = Image.fromarray(og_array)
+    smooth_gen.save(f"static\\smooth_{model}.png")
+    return mask_pixels
 
 
 def main(geojson, center_coordinates, gpr):
-    #get_mapbox_image(geojson, center_coordinates, gpr)
-    #prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
-    #get_gen_image("rd_input.png", "buildings_input.png")
-    rd_rgb ,  building_rgb = rgb_colour(gpr)
-    extract_raw_buildings(gpr, rd_rgb)
-    return
-
-center_coordinates = (103.78378301045407, 1.30560345)
-geojson = [[103.784756, 1.3050353], [103.7847946, 1.3061424], [103.7850962, 1.3068138], [103.7840787, 1.3068373], [103.7840465, 1.3064766], [103.7830011, 1.3065207], [103.7826663, 1.3050645], [103.784756, 1.3050353]]
-tar_gpr = 1.8
-main(geojson, center_coordinates, tar_gpr)
+    get_mapbox_image(geojson, center_coordinates, gpr)
+    prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
+    get_gen_image("rd_input.png", "buildings_input.png")
+    rd_mask_rgb ,  buildings_building_rgb = rgb_colour(gpr)
+    print(rd_mask_rgb)
+    extract_raw_buildings(rd_mask_rgb, [255,10,169], "rd_input.png", "gen_rd1.png", "rd1")
+    mask_pixels = extract_raw_buildings([0,255,0], buildings_building_rgb, "buildings_input.png", "gen_b2.png", "b2")
+    extract_raw_buildings([0,255,0], buildings_building_rgb, "buildings_input.png", "gen_b3.png", "b3")
+    site_area = mask_pixels*1.3335
+    print(site_area)
+    return site_area

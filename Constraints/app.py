@@ -3,6 +3,7 @@ import location
 import max_dwelling_units
 import road_setback
 import max_gfa
+import get_gen_images
 
 app = Flask(__name__)
 
@@ -18,9 +19,11 @@ def submit():
 
     address = postal_code or boundary_coordinates
     gpr = float(target_gpr)
-    site_area = 20800 #this hardcoded
 
-    osm_id, center_coordinates, location_coordinates = location.main(address)
+    osm_id, center_coordinates, location_coordinates, geojson = location.main(address)
+    
+    site_area = get_gen_images.main(geojson, center_coordinates, gpr)
+
     maximum_gfa = max_gfa.max_gfa_excluding_rrdr(gpr, site_area)
     roads_setback = road_setback.main(location_coordinates)
     maximum_dwelling_units = max_dwelling_units.max_dwelling_units(gpr, site_area, center_coordinates)

@@ -8,7 +8,7 @@ def max_dwelling_units(gpr, site_area, center_coordinate):
     map2 = False
 
     # Coordinates of regions in Map 1(central area)
-    json_file_path = "C:\\Users\\phuay\\Desktop\\term7sds\\Constraints\\Map1.json"
+    json_file_path = "Map1.json"
     with open(json_file_path, "r") as json_file:
         map1_coordinates_data = json.load(json_file)
     # Loop through each set of Map 1 coordinates and check if the point is within the polygon
@@ -20,7 +20,7 @@ def max_dwelling_units(gpr, site_area, center_coordinate):
             break  # If it's inside one of the polygons, break the loop
 
     # Coordinates of regions in Map 2
-    json_file_path = "C:\\Users\\phuay\\Desktop\\term7sds\\Constraints\\Map2.json"
+    json_file_path = "Map2.json"
     with open(json_file_path, "r") as json_file:
         map2_coordinates_data = json.load(json_file)
     # Loop through each set of Map 2 coordinates and check if the point is within the polygon

@@ -14,7 +14,7 @@
 
         h1 {
             color: #2B45A1;
-            padding-top: 130px;
+            padding-top: 30px;
             padding-bottom: 20px;
         }
 
@@ -97,7 +97,7 @@
     <form action="/submit" method="post">
         <div class="parent">
             <div class="child1">
-                <label for="postal_code">Postal code:</label>
+                <label for="postal_code">Postal code/Address:</label>
                 <input type="text" id="postal_code" name="postal_code" required>
             </div>
             <div>or</div>
@@ -129,8 +129,8 @@
     <div class="possible-site-plans">
         <h2>Possible site plans:</h2>
         <!-- Sample site plan images, replace with your own images if necessary -->
-        <img src="site_plan1.jpg" alt="Site Plan Image 1">
-        <img src="site_plan2.jpg" alt="Site Plan Image 2">
+        <img src="{{ url_for('static', filename='raw_rd1.png') }}" alt="Site Plan Image 1">
+        <img src="{{ url_for('static', filename='rec_rd1.png') }}" alt="Site Plan Image 2">
     </div>
     <button onclick="window.print()">Convert to PDF</button>
 
