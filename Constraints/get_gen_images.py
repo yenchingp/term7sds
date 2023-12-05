@@ -248,6 +248,12 @@ def is_close(rect1, rect2, threshold):
     distance = np.hypot(center1[0] - center2[0], center1[1] - center2[1])
     return distance < threshold
 
+def smooth_contours(contours, alpha=0.02):
+    # alpha parameter controls the approximation accuracy
+    smoothed_contours = [cv2.approxPolyDP(cnt, alpha * cv2.arcLength(cnt, True), True) for cnt in contours]
+    return smoothed_contours
+
+
 def extract_raw_buildings(gpr, rgb):
     og_path = "site.png"
     mask_path = "rd_input.png"
@@ -289,7 +295,7 @@ def extract_raw_buildings(gpr, rgb):
     approximated_contours_image = cv2.drawContours(blank_image_for_contour, approximated_contours, -1, (255), 5)
     Image.fromarray((approximated_contours_image).astype(np.uint8)).save("debug_site_mask.png")
 
-    # blank_image_for_rectangle = np.zeros_like(building_mask) #
+    #get rectangles
     colored_paper2 = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8) #light brown site
     rectangle_color = (220,217,214)
     rectangles = [cv2.boundingRect(contour) for contour in approximated_contours]
@@ -304,6 +310,23 @@ def extract_raw_buildings(gpr, rgb):
     og_array[site_mask] = colored_paper2[site_mask]
     rec_gen_r1 = Image.fromarray(og_array)
     rec_gen_r1.save("rec_r1.png")
+
+    # smooth
+    colored_paper3 = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8)
+    contour_colour = (220,217,214)
+    kernel = np.ones((3,3), np.uint8)
+    opened_image = cv2.morphologyEx(approximated_contours_image, cv2.MORPH_OPEN, kernel, iterations=1)
+    closed_image = cv2.morphologyEx(opened_image, cv2.MORPH_CLOSE, kernel, iterations=1)
+    contours, _ = cv2.findContours(closed_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contour_pixels = sum(cv2.contourArea(contour) for contour in contours)
+    min_area_threshold = 0.1*contour_pixels
+    large_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area_threshold] #discard small contours
+    smoothed_contours = smooth_contours(large_contours)
+    cv2.drawContours(colored_paper3, smoothed_contours, -1, contour_colour, thickness=cv2.FILLED)
+    og_array[site_mask] = colored_paper3[site_mask]
+    smooth_gen_r1 = Image.fromarray(og_array)
+    smooth_gen_r1.save("smooth_r1.png")
+
 
     return
 
