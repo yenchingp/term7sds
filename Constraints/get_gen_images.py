@@ -34,22 +34,22 @@ def rd_geojson_maker(geojson, gpr):
     encoded_geojson = requests.utils.quote(geojson_str)
     return encoded_geojson
 
-def buildings_geojson_maker(geojson):
-    geojson_feature = {
-        "type": "Feature",
-        "properties": {
-            "fill": "#00FF00",
-            "fill-opacity": "1.0",
-            "stroke-width" : 0,
-        },
-        "geometry": {
-            "type": "Polygon",
-            "coordinates": [geojson]
-        }
-    }
-    geojson_str = json.dumps(geojson_feature)
-    encoded_geojson = requests.utils.quote(geojson_str)
-    return encoded_geojson
+# def buildings_geojson_maker(geojson):
+#     geojson_feature = {
+#         "type": "Feature",
+#         "properties": {
+#             "fill": "#00FF00",
+#             "fill-opacity": "1.0",
+#             "stroke-width" : 0,
+#         },
+#         "geometry": {
+#             "type": "Polygon",
+#             "coordinates": [geojson]
+#         }
+#     }
+#     geojson_str = json.dumps(geojson_feature)
+#     encoded_geojson = requests.utils.quote(geojson_str)
+#     return encoded_geojson
 
 def og_geojson_maker(geojson):
     geojson_feature = {
@@ -69,7 +69,7 @@ def og_geojson_maker(geojson):
 
 def get_mapbox_image(geojson,center_coordinates, gpr):
     encoded_geojson_rd = rd_geojson_maker(geojson, gpr)
-    encoded_geojson_buildings = buildings_geojson_maker(geojson) # mask is always green
+    encoded_geojson_buildings = rd_geojson_maker(geojson, 1.4) # mask is always green
     encoded_geojson_og = og_geojson_maker(geojson)
     # call mapbox api
     access_token = 'sk.eyJ1IjoieWVuY2hpbmdwIiwiYSI6ImNsb3FrZ2U1czBqZjkycWx3cXVlbDRzOXkifQ.hTjiIfuNE7I-KhYqJfQkFw'  # Replace with your Mapbox access token
@@ -195,10 +195,62 @@ def extract_building_regions(arr, target_color, threshold=10):
     mask = (arr[:, :, :3] >= lower_bound) & (arr[:, :, :3] <= upper_bound)
     return np.all(mask, axis=-1)
 
-def extract_raw_buildings(gpr):
-    rd_rgb ,  building_rgb = rgb_colour(gpr)
+def approx_contours(contours, epsilon_factor=0.02):
+    approximated_contours = []
+    for contour in contours:
+        epsilon = epsilon_factor * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+        approximated_contours.append(approx)
+    return approximated_contours
+
+def remove_nested_rectangles(rectangles):
+    non_nested = []
+    for rect in rectangles:
+        x1, y1, w1, h1 = rect
+        nested = False
+        for other_rect in rectangles:
+            if other_rect == rect:
+                continue
+            x2, y2, w2, h2 = other_rect
+            if x1 >= x2 and y1 >= y2 and x1 + w1 <= x2 + w2 and y1 + h1 <= y2 + h2:
+                nested = True
+                break
+        if not nested:
+            non_nested.append(rect)
+    return non_nested
+
+def merge_rectangles(rectangles, distance_threshold):
+    merged = []
+    while rectangles:
+        a = rectangles.pop(0)
+        to_merge = [a]
+        i = 0
+        while i < len(rectangles):
+            b = rectangles[i]
+            if is_close(a, b, distance_threshold):
+                to_merge.append(b)
+                rectangles.pop(i)
+            else:
+                i += 1
+        xs = [x for x, _, w, _ in to_merge for x in [x, x+w]]
+        ys = [y for _, y, _, h in to_merge for y in [y, y+h]]
+        merged.append((min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)))
+    return merged
+
+def is_close(rect1, rect2, threshold):
+    """
+    Check if two rectangles are close to each other based on a threshold.
+    """
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    center1 = (x1 + w1 / 2, y1 + h1 / 2)
+    center2 = (x2 + w2 / 2, y2 + h2 / 2)
+    distance = np.hypot(center1[0] - center2[0], center1[1] - center2[1])
+    return distance < threshold
+
+def extract_raw_buildings(gpr, rgb):
     og_path = "site.png"
-    mask_path = "site_masked_buildings.png"
+    mask_path = "rd_input.png"
     gen_rd1_path = 'gen_rd1.png'
 
     og_image = Image.open(og_path).convert('RGB')
@@ -212,30 +264,59 @@ def extract_raw_buildings(gpr):
     masked_image_array = np.array(masked_image)
     gen_rd1_array = np.array(gen_rd1)
     
-    site_mask = create_binary_mask(masked_image_array, rd_rgb)
-    Image.fromarray((site_mask * 255).astype(np.uint8)).save("debug_site_mask.png")
+    #extract buildings
+    site_mask = create_binary_mask(masked_image_array, rgb)
     gen_rd1_array[~site_mask] = [255,255,255]
-    rd1_building_mask = extract_building_regions(gen_rd1_array, [255,10,169])
-    Image.fromarray((rd1_building_mask * 255).astype(np.uint8)).save("debug_building_mask.png")
-
-    colored_paper = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8)
-    colored_paper[rd1_building_mask] = [220,217,214]
-    Image.fromarray(colored_paper).save("debug_colored_paper.png")
+    rd1_building_mask = extract_building_regions(gen_rd1_array, [255,10,169]) # for rd its always pink buildings
+    Image.fromarray((rd1_building_mask * 255).astype(np.uint8)).save("debug_rd1_building_mask.png")
+    # put raw buildings onto og site
+    colored_paper = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8) #light brown site
+    colored_paper[rd1_building_mask] = [220,217,214] #dark brown buildings
     og_array[site_mask] = colored_paper[site_mask]
-
     raw_gen_r1 = Image.fromarray(og_array)
     raw_gen_r1.save("raw_r1.png")
+
+    # get contours
+    building_mask = rd1_building_mask.copy()
+    building_mask = (building_mask * 255).astype(np.uint8)
+    Image.fromarray((building_mask).astype(np.uint8)).save("debug_building_mask.png")
+    blurred = cv2.GaussianBlur(building_mask, (5, 5), 0)
+    edges = cv2.Canny(blurred, 50, 150)
+    contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    approximated_contours = approx_contours(contours)
+    original_approximated_contours = cv2.drawContours(building_mask.copy(), approximated_contours, -1, (255), 10)
+    blank_image_for_contour = np.zeros_like(building_mask)
+    approximated_contours_image = cv2.drawContours(blank_image_for_contour, approximated_contours, -1, (255), 5)
+    Image.fromarray((approximated_contours_image).astype(np.uint8)).save("debug_site_mask.png")
+
+    # blank_image_for_rectangle = np.zeros_like(building_mask) #
+    colored_paper2 = np.full((og_array.shape[0], og_array.shape[1], 3), [230, 228, 224], dtype=np.uint8) #light brown site
+    rectangle_color = (220,217,214)
+    rectangles = [cv2.boundingRect(contour) for contour in approximated_contours]
+    non_nested_rectangles = remove_nested_rectangles(rectangles)
+    distance_threshold = 10
+    merged_rectangles = merge_rectangles(non_nested_rectangles, distance_threshold)
+    min_width = 10
+    min_height = 10
+    for x, y, w, h in merged_rectangles:
+        if w >= min_width and h >= min_height:
+            cv2.rectangle(colored_paper2, (x, y), (x + w, y + h), rectangle_color, -1)
+    og_array[site_mask] = colored_paper2[site_mask]
+    rec_gen_r1 = Image.fromarray(og_array)
+    rec_gen_r1.save("rec_r1.png")
+
     return
 
 
 def main(geojson, center_coordinates, gpr):
-    get_mapbox_image(geojson, center_coordinates, gpr)
-    prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
-    get_gen_image("rd_input.png", "buildings_input.png")
-    extract_raw_buildings(gpr)
+    #get_mapbox_image(geojson, center_coordinates, gpr)
+    #prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
+    #get_gen_image("rd_input.png", "buildings_input.png")
+    rd_rgb ,  building_rgb = rgb_colour(gpr)
+    extract_raw_buildings(gpr, rd_rgb)
     return
 
 center_coordinates = (103.78378301045407, 1.30560345)
 geojson = [[103.784756, 1.3050353], [103.7847946, 1.3061424], [103.7850962, 1.3068138], [103.7840787, 1.3068373], [103.7840465, 1.3064766], [103.7830011, 1.3065207], [103.7826663, 1.3050645], [103.784756, 1.3050353]]
-tar_gpr = 1.4
+tar_gpr = 1.8
 main(geojson, center_coordinates, tar_gpr)
