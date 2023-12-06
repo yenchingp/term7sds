@@ -48,7 +48,7 @@ def get_roads(location, distance=30):
 
 def main(location):
     roads = get_roads(location)
-    output = 'Setback details: '
+    output = ''
     for road in roads:
         if road['highway'] == 'motorway': #CAT1
             output += f"\n {road['name']}, CAT 1: If 6 storeys and above, 30m road buffer, including 5m green buffer. Otherwise, 24m road buffer, including 5m green buffer. "

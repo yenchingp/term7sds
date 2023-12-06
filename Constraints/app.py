@@ -34,7 +34,7 @@ def submit():
         "max_dwelling_units": maximum_dwelling_units,
         "address": address,
         "gpr": gpr,
-        "area": site_area
+        "site_area": site_area,
     }
 
     # Render the same index.html but now with the development_restrictions variable passed to it.

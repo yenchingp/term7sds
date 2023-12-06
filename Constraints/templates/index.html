@@ -61,7 +61,6 @@
             background-color: #fff;
             padding: 25px;
             margin-bottom: 30px;
-            display: inline-block;
             width: 100%;
             text-align: left;  /* Reset text alignment for section content */
         }
@@ -121,32 +120,38 @@
 
     <div class="information">
         <h2>Information</h2>
-        <p>Address: {{development_restrictions.address| default('')}}</p>
-        <p>Target GPR: {{development_restrictions.gpr| default('')}}</p>
-        <p>Area: {{development_restrictions.site_area| default('')}}</p>
+        <h3>Address</h3>
+        <p>{{development_restrictions.address| default('')}}</p>
+        <h3>Target GPR</h3>
+        <p>{{development_restrictions.gpr| default('')}}</p>
+        <h3>Area</h3>
+        <p>{{development_restrictions.site_area| default('')}}</p>
     </div>
     <div class="development-restrictions">
-        <h3>Development restrictions:</h3>
+        <h2>Development restrictions:</h2>
+        <h3>Maximum GFA</h3>
         <p>{{ development_restrictions.max_gfa | default('')}}</p>
+        <h3>Road Setback</h3>
         <p>{{ development_restrictions.roads_setback | default('')}}</p>
+        <h3>Maximum Dwelling Units</h3>
         <p>{{ development_restrictions.max_dwelling_units | default('')}}</p>
     </div>
     <div class="possible-site-plans">
-        <h3>Possible site plans:</h3>
+        <h2>Possible site plans:</h2>
         <div class="row">
-            <h2>Model 1:</h2>
+            <h3>Model 1:</h3>
             <img src="{{ url_for('static', filename= 'raw_rd1.png') }}" alt="Image 1">
             <img src="{{ url_for('static', filename='rec_rd1.png') }}" alt="Image 2">
             <img src="{{ url_for('static', filename='smooth_rd1.png') }}" alt="Image 3">
         </div>
         <div class="row">
-            <h2>Model 2:</h2>
+            <h3>Model 2:</h3>
             <img src="{{ url_for('static', filename='raw_b2.png') }}" alt="Image 4">
             <img src="{{ url_for('static', filename='rec_b2.png') }}" alt="Image 5">
             <img src="{{ url_for('static', filename='smooth_b2.png') }}" alt="Image 6">
         </div>
         <div class="row">
-            <h2>Model 3:</h2>
+            <h3>Model 3:</h3>
             <img src="{{ url_for('static', filename='raw_b3.png') }}" alt="Image 7">
             <img src="{{ url_for('static', filename='rec_b3.png') }}" alt="Image 8">
             <img src="{{ url_for('static', filename='smooth_b3.png') }}" alt="Image 9">

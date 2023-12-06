@@ -35,12 +35,12 @@ def max_dwelling_units(gpr, site_area, center_coordinate):
     max_du = 0
     if (map2 is False) and (map1 is False):
         max_du = (gpr * site_area) / 85
-        output = f"Location is not in Map 2. Max dwelling unit is {max_du}."
+        output = f"Max dwelling unit is {max_du}."
 
     # if not in central area but in map 2
     if map2 is True:
         max_du = (gpr * site_area) / 100
-        output = f"Location is in Map 2. Max dwelling unit is {max_du}."
+        output = f"Location is in restricted area, different guidelines may apply. <br> Max dwelling unit is {max_du}."
 
     # if in city
     if map1 is True:
