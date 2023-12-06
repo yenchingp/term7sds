@@ -66,28 +66,30 @@ def get_mapbox_image(geojson,center_coordinates, gpr):
     response1 = requests.get(ogurl)
     response2 = requests.get(mask_rd_url)
     response3 = requests.get(mask_buildings_url)
+    print(response1.status_code, response2.status_code, response3.status_code)
     if response1.status_code == 200:
         # Save the image to a file
-        with open('site.png', 'wb') as image_file:
+        with open('./site.png', 'wb') as image_file:
             image_file.write(response1.content)
         print('Og Image saved successfully!')
     else:
         print(f"Failed to retrieve the image: {response1.status_code} - {response1.content}")
+    
     if response2.status_code == 200:
         # Save the image to a file
-        with open('rd_input.png', 'wb') as image_file:
+        with open('./rd_input.png', 'wb') as image_file:
             image_file.write(response2.content)
         print('Masked Image Rd saved successfully!')
     else:
         print(f"Failed to retrieve the masked image: {response2.status_code} - {response2.content}")
+    
     if response3.status_code == 200:
         # Save the image to a file
-        with open('site_masked_buildings.png', 'wb') as image_file:
+        with open('./site_masked_buildings.png', 'wb') as image_file:
             image_file.write(response3.content)
         print('Masked Image Buildings saved successfully!')
     else:
         print(f"Failed to retrieve the masked image: {response2.status_code} - {response2.content}")
-    return
 
 def prep_buildings_model_input(gpr, input_image, output_image): #BGR
     image = cv2.imread(input_image)
@@ -310,20 +312,12 @@ def extract_raw_buildings(mask_rgb, building_rgb, mask_path, gen_model_path, mod
 
 
 def main(geojson, center_coordinates, gpr):
-    print(gpr)
     get_mapbox_image(geojson, center_coordinates, gpr)
     prep_buildings_model_input(gpr, "site_masked_buildings.png", "buildings_input.png")
     get_gen_image("rd_input.png", "buildings_input.png")
     rd_mask_rgb ,  buildings_building_rgb = rgb_colour(gpr)
-    print(rd_mask_rgb)
     extract_raw_buildings(rd_mask_rgb, [255,10,169], "rd_input.png", "gen_rd1.png", "rd1")
     mask_pixels = extract_raw_buildings([0,255,0], buildings_building_rgb, "buildings_input.png", "gen_b2.png", "b2")
     extract_raw_buildings([0,255,0], buildings_building_rgb, "buildings_input.png", "gen_b3.png", "b3")
     site_area = mask_pixels*1.3335
     return site_area
-
-# center_coordinates = (103.78378301045407, 1.30560345)
-# geojson = [[103.784756, 1.3050353], [103.7847946, 1.3061424], [103.7850962, 1.3068138], [103.7840787, 1.3068373], [103.7840465, 1.3064766], [103.7830011, 1.3065207], [103.7826663, 1.3050645], [103.784756, 1.3050353]]
-# tar_gpr = 3.0
-# mask_pixels = main(geojson, center_coordinates, tar_gpr)
-# print(mask_pixels)

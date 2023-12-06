@@ -12,8 +12,9 @@ def get_osm_id(address):
         data = response.json()
         if data:
             center_coordinate = float(data[0].get("lat")), float(data[0].get("lon"))
+            center_ccordinate_mapbox = float(data[0].get("lon")), float(data[0].get("lat"))
             osm_id = data[0]['osm_id']
-            return osm_id, center_coordinate
+            return osm_id, center_coordinate, center_ccordinate_mapbox
         else:
             print("No results found for the address.")
             return None
@@ -49,13 +50,18 @@ def coordinates_to_geojson(coordinates, osm_type='way'):
         print("The provided coordinates do not form a closed loop. Cannot create a Polygon.")
         return None
     # Flip the coordinates from (lat, lon) to (lon, lat)
+    coordinates_mapbox = [[lat,lon] for lat, lon in coordinates]
     flipped_coordinates = [[lon, lat] for lat, lon in coordinates]
-    return flipped_coordinates
+    return flipped_coordinates, coordinates_mapbox
 
 def main(address):
-    osm_id, center_coordinates = get_osm_id(address)
+    osm_id, center_coordinates, center_coordinates_mapbox = get_osm_id(address)
     if osm_id is None:
         return
     location = get_coordinates_of_way(osm_id)
-    geojson = coordinates_to_geojson(location)
-    return osm_id, center_coordinates, location, geojson
+    geojson, geojson_for_mapbox = coordinates_to_geojson(location)
+    return osm_id, center_coordinates,center_coordinates_mapbox, location, geojson, geojson_for_mapbox
+
+osm_id, center_coordinates,center_coordinates_mapbox, location, geojson, geojson_for_mapbox =main("simei green")
+print(center_coordinates, geojson)
+print(center_coordinates_mapbox,geojson_for_mapbox)

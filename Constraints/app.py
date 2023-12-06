@@ -20,9 +20,9 @@ def submit():
     address = postal_code or boundary_coordinates
     gpr = float(target_gpr)
 
-    osm_id, center_coordinates, location_coordinates, geojson = location.main(address)
-    
-    site_area = get_gen_images.main(geojson, center_coordinates, gpr)
+    osm_id, center_coordinates, center_coordinates_mapbox, location_coordinates, geojson, geojson_for_mapbox = location.main(address)
+    site_area = get_gen_images.main(geojson, center_coordinates_mapbox, gpr)
+    print("huat:", geojson, center_coordinates_mapbox, gpr)
 
     maximum_gfa = max_gfa.max_gfa_excluding_rrdr(gpr, site_area)
     roads_setback = road_setback.main(location_coordinates)
